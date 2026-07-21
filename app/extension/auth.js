@@ -1,7 +1,8 @@
-const SPOTIFY_CLIENT_ID = 'fb59babdf2364cec8eefcbebc007190e';
+import { SPOTIFY_CLIENT_ID } from './config.js';
+
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
-const SPOTIFY_SCOPES = ['user-read-email', 'user-read-private'];
+export const SPOTIFY_SCOPES = ['user-read-email', 'user-read-private'];
 
 // Convert a byte array into a URL-safe base64 string for PKCE challenge generation.
 function base64UrlEncode(value) {
@@ -25,13 +26,14 @@ async function generatePkcePair() {
 }
 
 // Build the Spotify authorization URL with the required PKCE parameters.
-function buildAuthUrl(redirectUri, challenge, state) {
+export function buildAuthUrl(redirectUri, challenge, state) {
   const authUrl = new URL(SPOTIFY_AUTH_URL);
 
   authUrl.searchParams.set('client_id', SPOTIFY_CLIENT_ID);
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('redirect_uri', redirectUri);
   authUrl.searchParams.set('scope', SPOTIFY_SCOPES.join(' '));
+  authUrl.searchParams.set('show_dialog', 'true');
   authUrl.searchParams.set('code_challenge', challenge);
   authUrl.searchParams.set('code_challenge_method', 'S256');
   authUrl.searchParams.set('state', state);
@@ -74,7 +76,7 @@ async function exchangeCodeForToken(code, redirectUri, verifier) {
 }
 
 // Read the code and state values returned from Spotify after the redirect completes.
-function parseAuthResponse(responseUrl) {
+export function parseAuthResponse(responseUrl) {
   const url = new URL(responseUrl);
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -93,10 +95,22 @@ export async function authenticateWithSpotify() {
     throw new Error('Chrome identity APIs are unavailable in this context.');
   }
 
-  const redirectUri = chrome.identity.getRedirectURL('callback');
+  const redirectUri = chrome.identity.getRedirectURL();
   const pkce = await generatePkcePair();
   const state = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
   const authUrl = buildAuthUrl(redirectUri, pkce.challenge, state);
+
+  console.info('[ONBEAT] Spotify auth starting');
+  console.info('[ONBEAT] redirectUri:', redirectUri);
+  console.info('[ONBEAT] authUrl:', authUrl);
+  console.info('[ONBEAT] OAuth params:', {
+    client_id: SPOTIFY_CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: redirectUri,
+    scope: SPOTIFY_SCOPES.join(' '),
+    code_challenge_method: 'S256',
+    show_dialog: true
+  });
 
   let responseUrl;
 
@@ -105,8 +119,10 @@ export async function authenticateWithSpotify() {
       url: authUrl,
       interactive: true
     });
+    console.info('[ONBEAT] launchWebAuthFlow success', responseUrl);
   } catch (error) {
-    const message = error?.message || '';
+    console.error('[ONBEAT] launchWebAuthFlow failed', error);
+    const message = error?.message || String(error) || '';
 
     if (message.includes('redirect_uri') || message.includes('redirect')) {
       throw new Error(`Spotify rejected the redirect URL. Add this exact URL in your Spotify app settings: ${redirectUri}`);

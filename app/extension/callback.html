@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ONBEAT Spotify Login</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #050816;
+        color: #f5f7ff;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 24px;
+      }
+
+      .card {
+        background: rgba(12, 18, 36, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 24px;
+        text-align: center;
+        max-width: 420px;
+      }
+
+      .status {
+        margin-top: 12px;
+        color: #7dd3fc;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Spotify login complete</h1>
+      <p>You can close this window and return to ONBEAT.</p>
+      <p class="status">Finalizing your connection…</p>
+    </div>
+    <script type="module" src="./callback.js"></script>
+  </body>
+</html>
