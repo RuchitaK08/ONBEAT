@@ -85,8 +85,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    generateButton.addEventListener('click', () => {
-        window.alert('Playlist generation coming soon!');
+    generateButton.addEventListener('click', async () => {
+        // Start UI loading state
+        generateButton.disabled = true;
+        const prevText = generateButton.textContent;
+        generateButton.textContent = 'Generating...';
+        statusLabel.textContent = 'Building your playlist...';
+        statusLabel.classList.remove('error', 'success');
+
+        try {
+            const spotify = await import('./spotify.js');
+            const authState = await getSpotifyAuth();
+
+            if (!hasValidSpotifyAuth(authState)) {
+                throw new Error('No valid Spotify session. Please connect first.');
+            }
+
+            const workoutSelection = workout.value;
+            const result = await spotify.generateWorkoutPlaylist(authState, workoutSelection);
+
+            statusLabel.textContent = `Playlist created: ${result.playlist.name} (${result.trackCount} tracks)`;
+            statusLabel.classList.remove('error');
+            statusLabel.classList.add('success');
+            setConnectedState();
+        } catch (err) {
+            console.error('[ONBEAT] generatePlaylist failed', err);
+            const message = err?.message || 'Playlist generation failed.';
+            statusLabel.textContent = `Spotify playlist failed: ${message}`;
+            statusLabel.classList.remove('success');
+            statusLabel.classList.add('error');
+        } finally {
+            generateButton.disabled = false;
+            generateButton.textContent = prevText;
+        }
     });
 
     workout.addEventListener('change', updateBpm);
