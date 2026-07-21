@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "ONBEAT",
+  "version": "1.0.0",
+  "description": "Generate Spotify workout playlists based on your workout and music taste.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ONBEAT"
+  },
+  "permissions": [
+    "storage",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://accounts.spotify.com/*",
+    "https://api.spotify.com/*"
+  ]
+}
